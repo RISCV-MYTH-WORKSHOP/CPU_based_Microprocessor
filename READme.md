@@ -1,4 +1,4 @@
-# RISC-V based CPU
+# RISC-V based CPU (Microprocessor)
 
 [![](https://img.shields.io/badge/-RISC--V-red "RISC-V")](https://riscv.org/) [![](https://img.shields.io/badge/-TL--Verilog-blue "TL-Verilog")](https://tl-x.org/) 
 
