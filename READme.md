@@ -2,8 +2,34 @@
 
 [![](https://img.shields.io/badge/-RISC--V-red "RISC-V")](https://riscv.org/) [![](https://img.shields.io/badge/-TL--Verilog-blue "TL-Verilog")](https://tl-x.org/) 
 
+![myth_banner](https://user-images.githubusercontent.com/88897605/170865437-56aa5203-f1dd-448a-8910-33d4f0899ed5.png)
 
-This repository contains all the information needed to build your RISC-V pipelined core, which has support of base interger RV32I instruction format using TL-Verilog on makerchip platform
+### My Project Repository for RISC-V MYTH ( Microprocessor for You in Thirty Hours) workshop, conducted by VSD Corp and Redwood EDA.This workshop was conducted over a period of 5 days and in this short span of time we were able to understand & implement a RISC-V core with base instruction set. Programming language used in the software section was with TL-Verilog for HDL implementation.Tools used: Spike and Makerchip IDE.This repository contains all the information needed to build your RISC-V pipelined core, which has support of base interger RV32I instruction format using TL-Verilog on makerchip platform
+
+
+# Table of Contents
+- [Introduction to RISC-V Instruction Set Architecture](#introduction-to-risc-v-instruction-set-architecture)
+- [Why RISC-V?](#why-risc-v)
+- [Brief of GNU compiler toolchain](#brief-of-gnu-compiler-toolchain)
+- [Introduction to ABI](#introduction-to-abi)
+- [Digital Logic with TL-Verilog and Makerchip](#digital-logic-with-tl-verilog-and-makerchip)
+  - [Combinational logic](#combinational-logic)
+  - [Sequential logic](#sequential-logic)
+  - [Pipelined logic](#pipelined-logic)
+  - [Validity](#validity)
+- [Basic RISC-V CPU micro-architecture](#basic-risc-v-cpu-micro-architecture)
+  - [Fetch](#fetch)
+  - [Decode](#decode)
+  - [Register File Read and Write](#register-file-read-and-write)
+  - [Execute](#execute)
+  - [Control Logic](#control-logic)
+- [Pipelined RISC-V Core](#pipelined-risc-v-core)
+  - [Pipelining the Core](#pipelining-the-core)
+  - [Load and Store Data](#load-and-store-data)
+  - [FINAL RISC-V CPU](#final-risc-v-cpu)
+- [Contributor](#contributor) 
+- [Acknowledgements](#acknowledgements)
+
 
 # Introduction to RISC-V Instruction set architecture
 A RISC-V ISA is defined as a base integer ISA, which must be present in any implementation, plus optional extensions to the base ISA. Each base integer instruction set is characterized by
@@ -21,6 +47,13 @@ More details on RISC-V ISA can be obtained [Link](https://riscv.org/wp-content/u
 * Multiple Standard Extensions.
 * Variable-length instruction encoding
 
+# Introduction to ABI
+An Application Binary Interface is a set of rules enforced by the Operating System on a specific architecture. So, Linker converts relocatable machine code to absolute machine code via ABI interface specific to the architecture of machine.
+
+![calling_convetion](https://user-images.githubusercontent.com/88897605/170866175-eba932fe-4dce-4a1f-bc7e-5e6eca38fce2.png)
+
+So, it is system call interface used by the application program to access the registers specific to architecture. Overhere the architecture is RISC-V, so to access 32 registers of RISC-V below is the table which shows the calling convention (ABI name) given to registers for the application programmer to use
+
 # Brief of GNU compiler toolchain
 The GNU Toolchain is a set of programming tools in Linux systems that programmers can use to make and compile their code to produce a program or library. So, how the machine code which is understandable by processer is explained below
 
@@ -29,40 +62,30 @@ The GNU Toolchain is a set of programming tools in Linux systems that programmer
 * Assembler - Takes the input provided by compiler and converts to relocatable machine code.
 * Linker - Takes the input provided by Assembler and converts to Absolute machine code.
 
-## Using RISC-V Complier 
 
-* To use the risc-v gcc compiler use the below command:
-```
-riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o <object filename> <C filename>
-```
+Under the risc-v toolchain, 
+  * To use the risc-v gcc compiler use the below command:
 
-More generic command with different options:
-```
-riscv64-unknown-elf-gcc <compiler option -O1 ; Ofast> <ABI specifier -lp64; -lp32; -ilp32> <architecture specifier -RV64 ; RV32> -o <object filename> <C filename>
-```
-* compiler options : O1, Ofast
-* ABI options : lp64, lp32
-* Architecture options: RV64, RV32
+    `riscv64-unknown-elf-gcc -Ofast -mabi=lp64 -march=rv64i -o <object filename> <C filename>`
 
-More details on compiler options can be obtained [Link](https://www.sifive.com/blog/all-aboard-part-1-compiler-args)
+    More generic command with different options:
 
-#### To view assembly code use the below command,
-```
-riscv64-unknown-elf-objdump -d <object filename>
-```
-#### Simulating the object file using SPIKE simulator
-```
-spike pk <object filename>
-```
-#### Debugging the object file using SPIKE
+    `riscv64-unknown-elf-gcc <compiler option -O1 ; Ofast> <ABI specifier -lp64; -lp32; -ilp32> <architecture specifier -RV64 ; RV32> -o <object filename> <C      filename>`
 
-```
-spike -d pk <object Filename>
-```
-#### Degub command as 
-```
-until pc 0 <pc of your choice>
-```
+    More details on compiler options can be obtained [here](https://www.sifive.com/blog/all-aboard-part-1-compiler-args)
+
+  * To view assembly code use the below command,
+    
+    `riscv64-unknown-elf-objdump -d <object filename>`
+    
+  * To use SPIKE simualtor to run risc-v obj file use the below command,
+  
+    `spike pk <object filename>`
+    
+    To use SPIKE as debugger
+    
+    `spike -d pk <object Filename>` with degub command as `until pc 0 <pc of your choice>`
+
 
 
 
@@ -222,7 +245,7 @@ The Below Snippet shows the Write Register Implementation in Makerchip.
 
 ![write](https://user-images.githubusercontent.com/88897605/170862405-e8acd752-7be2-4d74-a2e5-e0f81d665c18.png)
 
-# Excute
+# Execute
 
 * Operation- During the Execute Stage, both the operands perform the operation based on Opcode
 
@@ -307,10 +330,15 @@ The Snippet below shows the successful implementation of 4-stage RISC-V Core
 
 ![final_cpu](https://user-images.githubusercontent.com/88897605/170863583-6a18307d-570c-4be4-bb6e-aecd1cc10305.png)
 
+
+# Contributor
+Aakash K</br>
+Contact:iaakashkrish@gmail.com</br>
+
 # Acknowledgements
 
-- [Kunal Ghosh](https://github.com/kunalg123), Co-founder, VSD Corp. Pvt. Ltd.
-- [Steve Hoover](https://github.com/stevehoover), Founder, Redwood EDA
+- [Kunal Ghosh](https://github.com/kunalg123), Co-founder, VSD Corp. Pvt. Ltd - kunalpghosh@gmail.com
+- [Steve Hoover](https://github.com/stevehoover), Founder, Redwood EDA - steve.hoover@redwoodeda.com
 - [Shivam Potdar](https://github.com/shivampotdar), GSoC 2020 @fossi-foundation
 
 
