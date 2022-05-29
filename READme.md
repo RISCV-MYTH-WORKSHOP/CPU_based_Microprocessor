@@ -132,3 +132,186 @@ Timing abstract powerful feature of TL-Verilog which converts a code into pipeli
 * You will see this operator being used '?' throughout the CPU Code.
 
 ![21_v](https://user-images.githubusercontent.com/88897605/170719922-4f8432ad-6024-48d3-a45b-2359a305acc2.jpg)
+
+
+
+
+# Basic RISC-V CPU micro-architecture 
+
+This section will cover the implementation of a simple 3-stage RISC-V Core / CPU.
+### The 3-stages broadly are: 
+
+* Fetch
+* Decode
+* Execute. 
+
+
+### Basic block of the CPU/RISC-V core
+
+![riscv_block_diagram](https://user-images.githubusercontent.com/88897605/170861561-0fb3a68c-7d2f-4fd6-ad00-3370fc5af3e9.jpeg)
+
+## Fetch
+
+##### Program Counter 
+* (```Instruction Pointer```) is a block which contains the address of the next instruction to be executed.
+ 
+* It is feed to the instruction memory, which in turn gives out the instruction to be executed
+* In Short ```Program Counter (PC)```: Holds the address of next Instruction
+
+
+##### Instruction Memory (IM)
+* ```IM``` :Holds the set of instructions to be executed
+* The instruction memory gives out a 32-bit instruction depending upon the input address
+
+During Fetch Stage, processor fetches the instruction from the IM pointed by address given by PC
+
+The below Snippet shows the Program Counter and Instruction Fetch Implementation in Makerchip
+
+![fetch](https://user-images.githubusercontent.com/88897605/170862029-7dfb3d17-eaed-4f93-90e0-db4e84c7ea93.png)
+
+
+## Decode
+6 types of Instructions:
+
+ * R-type - Register
+ * I-type - Immediate
+ * S-type - Store
+ * B-type - Branch (Conditional Jump)
+ * U-type - Upper Immediate
+ * J-type - Jump (Unconditional Jump)
+ 
+Decode Function - The 32-bit fetched instruction has to be decoded first to determine the operation to be performed and the source / destination address. Instruction Type is first identified on the opcode bits of instruction. The instruction type can R, I, S, B, U, J. Every instruction has a fixed format defined in the RISC-V ISA. Depending on the formats, the following fields are determined:
+
+* ```opcode``` funct3, funct7 -> Specifies the Operation
+* ```imm``` -> Immediate values / Offsets
+* ```rs1```,```rs2``` -> Source register index
+* ```rd``` -> Destination register index
+
+The Below snippet shows the Decode in Makerchip
+![decode](https://user-images.githubusercontent.com/88897605/170862239-b991fd07-e9ad-4c93-9fcc-3e98521b2dbc.png)
+
+
+## Register file Read and Write
+
+Here the Register file is 2 read, 1 write means 2 read and 1 write operation can happen simultanously.
+
+Inputs:
+
+Read_Enable - Enable signal to perform read operation
+Read_Address1 - Address1 from where data has to be read
+Read_Address2 - Address2 from where data has to be read
+Write_Enable - Enable signal to perform write operation
+Write_Address - Address where data has to be written
+Write_Data - Data to be written at Write_Address
+Outputs:
+
+Read_Data1 - Data from Read_Address1
+Read_Data2 - Data from Read_Address2
+
+The Below Snippet shows the Write and Read Register Implementation in Makerchip.
+
+### Read
+
+The Below Snippet shows the Read Register Implementation in Makerchip. 
+
+![Read](https://user-images.githubusercontent.com/88897605/170862394-43614149-e49d-405e-be2f-e3255b1e489a.png)
+
+### Write
+
+The Below Snippet shows the Write Register Implementation in Makerchip.
+
+![write](https://user-images.githubusercontent.com/88897605/170862405-e8acd752-7be2-4d74-a2e5-e0f81d665c18.png)
+
+# Excute
+
+* Operation- During the Execute Stage, both the operands perform the operation based on Opcode
+
+Below is Snippet shows Excute stage in Makerchip.
+
+![excute](https://user-images.githubusercontent.com/88897605/170862589-020c4532-77cc-4761-809b-8db593f060d1.png)
+
+# Control logic
+
+* Operation- During Decode Stage,branch target address is calculated and fed into PC mux. Before Execute Stage, once the operands are ready branch condition is checked.
+
+Below is Snippet shows Control logic stage in Makerchip.
+
+![control_logic](https://user-images.githubusercontent.com/88897605/170862720-abfb3e8d-d69d-4f6b-abfc-262da9aae44a.png)
+
+
+# Pipelined RISC-V Core
+
+* Pipelining processes increases the overall performance of the system. Thus, the previously designed cores can be pipelined. 
+* The "Timing Abstraction" feature of TL-Verilog makes it easy.
+* Converting non-piepleined CPU to pipelined CPU using timing abstract feature of TL-Verilog. This allows easy retiming wihtout any risk of funcational bugs. 
+* More details reagrding Timing Abstract in TL-Verilog can be found in IEEE Paper ["Timing-Abstract Circuit Design in Transaction-Level Verilog" by Steven Hoover.](https://ieeexplore.ieee.org/document/8119264)
+
+## Pipelining the Core
+
+* Pipelining the CPU with branches still having 3 cycle delay rest all instructions are pipelined
+
+Pipelining the CPU in TL-Verilog can be done in following manner:
+```
+|<pipe_name>
+@<pipe_stage>
+   Instructions present in this stage
+@<pipe_stage>
+   Instructions present in this stage
+```
+There are various hazards to be taken into consideration while implementing a pipelined design. Some of hazards taken under consideration are:
+
+* Improper Updating of Program Counter (PC)
+* Read-before-Write Hazard
+
+Below is Snippet of pipelined CPU with a test case of assembly program which does summation from 1 to 9 then stores to r10 of register file
+
+In Snippet r10 = 45 Test case: ```*passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);```
+
+![piplining_cpu](https://user-images.githubusercontent.com/88897605/170863136-854575e8-bf0d-4dfa-beed-914eb8d62e71.png)
+
+# Load and Store Data
+
+Similar to branch, load will also have 3 cycle delay. So, added a Data Memory 1 write/read memory.
+
+Inputs:
+
+* Read_Enable - Enable signal to perform read operation
+* Write_Enable - Enable signal to perform write operation
+* Address - Address specified whether to read/write from
+* Write_Data - Data to be written on Address (Store Instruction)
+Output:
+
+ * Read_Data - Data to be read from Address (Load Instruction)
+ 
+Added test case to check fucntionality of load/store. Stored the summation of 1 to 9 on address 4 of Data Memory and loaded that value from Data Memory to r17.
+
+
+
+* A Data memory can be added to the Core. The Load-Store operations will add up a new stage to the core.Thus,making it now a 4-Stage Core/CPU.
+
+The proper functioning of the RISC-V core can be ensured by introducing some testcases to the code.
+* For example, if program for summation of positive integers from 1 to 9 and storing it to specific register can be verified by:
+
+   * ```*passed = |cpu/xreg[10]>>5$value == (1+2+3+4+5+6+7+8+9);``` 
+
+Below is Snippet from Makerchip IDE after including load/store instructions in Makerchip
+
+![load$store](https://user-images.githubusercontent.com/88897605/170863238-7f5f164b-11f1-4712-be84-b9e12d56d9e0.png)
+
+# FINAL RISC-V CPU
+
+* After pipelining is proved in simulations, the operations for Jump Instructions are added. 
+* Also, added Instruction Decode and ALU Implementation for RV32I Base Integer Instruction Set.
+
+The Snippet below shows the successful implementation of 4-stage RISC-V Core
+
+![final_cpu](https://user-images.githubusercontent.com/88897605/170863583-6a18307d-570c-4be4-bb6e-aecd1cc10305.png)
+
+# Acknowledgements
+
+- [Kunal Ghosh](https://github.com/kunalg123), Co-founder, VSD Corp. Pvt. Ltd.
+- [Steve Hoover](https://github.com/stevehoover), Founder, Redwood EDA
+- [Shivam Potdar](https://github.com/shivampotdar), GSoC 2020 @fossi-foundation
+
+
+
