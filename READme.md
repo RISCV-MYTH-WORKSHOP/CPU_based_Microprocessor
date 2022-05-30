@@ -396,6 +396,9 @@ The Snippet below shows the successful implementation of 4-stage RISC-V Core
 
 ![final_cpu](https://user-images.githubusercontent.com/88897605/170863583-6a18307d-570c-4be4-bb6e-aecd1cc10305.png)
 
+![cpu_riscv](https://user-images.githubusercontent.com/88897605/171005366-33557cbe-210b-454d-a6ec-cc2575f04ed6.png)
+
+
 
 # Contributor
 Aakash K</br>
